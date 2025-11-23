@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import MenuItem, Order, OrderItem
-
+from rest_framework.exceptions import ValidationError
 
 class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,6 +30,10 @@ class OrderSerializer(serializers.ModelSerializer):
         Calculates total_amount based on MenuItem.price * quantity.
         """
         items_data = validated_data.pop("items", [])
+
+        if not items_data:
+            raise ValidationError({"items": ["At least one item is required."]})
+        
         order = Order.objects.create(**validated_data)
         total = 0.0
 
@@ -37,6 +41,9 @@ class OrderSerializer(serializers.ModelSerializer):
             menu_item = item_data["menu_item"]
             quantity = item_data["quantity"]
             note = item_data.get("note", "")
+
+            if not menu_item.active:
+                raise ValidationError({"items": [f"Menu item '{menu_item.name}' is not active"]})
 
             item_price = menu_item.price
 

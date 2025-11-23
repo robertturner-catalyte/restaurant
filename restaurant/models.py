@@ -37,12 +37,8 @@ class Order(models.Model):
     
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(
-        Order, related_name="items", on_delete=models.CASCADE
-    )
-    menu_item = models.ForeignKey(
-        MenuItem, related_name="order_items", on_delete=models.CASCADE
-    )
+    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
+    menu_item = models.ForeignKey(MenuItem, related_name="order_items", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     item_price = models.FloatField()
     note = models.CharField(max_length=300, blank=True, null=True)

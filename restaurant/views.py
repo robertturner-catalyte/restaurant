@@ -1,8 +1,9 @@
 from rest_framework import viewsets, status as http_status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from .models import MenuItem, Order, OrderItem
 from django.utils import timezone
+from django.db.models import Sum
 from .serializers import (
     MenuItemSerializer,
     OrderSerializer,
@@ -67,6 +68,21 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.picked_up_at = timezone.now()
         order.save()
         return Response(OrderSerializer(order).data, status=http_status.HTTP_200_OK)
+    
+@api_view(["GET"])
+def daily_summary(request):
+    today = timezone.now().date()
+    orders_today = Order.objects.filter(created_at__date=today)
+
+    total_orders = orders_today.count()
+    total_revenue = sum(o.total_amount for o in orders_today)
+
+    data = {
+        "date": str(today),
+        "total_orders": total_orders,
+        "total_revenue": total_revenue
+    }
+    return Response(data,status = http_status.HTTP_200_OK)
 class OrderItemViewSet(viewsets.ModelViewSet):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
